@@ -293,6 +293,14 @@ textarea:focus, input[type=text]:focus, select:focus { border-color: var(--teal-
   <div class="tab" onclick="showTab('uebersicht')">Übersicht</div>
   <div class="tab" onclick="showTab('muster')">Muster</div>
 </nav>
+<div id="warn-banner" style="display:none;background:#fde8e8;border-left:4px solid #c0544a;padding:12px 16px;align-items:flex-start;gap:10px;font-size:11px;color:#c0544a;line-height:1.7;">
+  <span style="font-size:18px;flex-shrink:0;">&#9888;&#65039;</span>
+  <span><strong>Achtung:</strong> Wenn du keinen Link erstellst, sind deine Daten weg.<br>
+  Klicke nach deinen Einträgen auf <strong>&#128279; Link zum Speichern deiner Daten erstellen</strong> — speichere ihn als Lesezeichen oder schick ihn dir per E-Mail. Nur so sind deine Daten gesichert.</span>
+</div>
+
+
+
 
 <div class="content">
 
@@ -608,7 +616,7 @@ textarea:focus, input[type=text]:focus, select:focus { border-color: var(--teal-
 
 <!-- FAB -->
 <div class="fab-row">
-  <button class="fab gold" onclick="createLink()">🔗 Link erstellen</button>
+  <button class="fab gold" onclick="createLink()">🔗 Link zum Speichern deiner Daten erstellen</button>
   <button class="fab" onclick="showTab('neu')">+ Neue Hypothese</button>
 </div>
 
@@ -659,6 +667,7 @@ function doLogin() {
   if (isValidPassword(pw)) {
     sessionStorage.setItem(SESSION_KEY, '1');
     document.getElementById('login-screen').classList.add('hidden');
+    var b = document.getElementById('warn-banner'); if(b){ b.style.display='flex'; }
     err.textContent = '';
     init();
   } else {
@@ -670,6 +679,7 @@ function doLogin() {
 function checkLogin() {
   if (sessionStorage.getItem(SESSION_KEY)) {
     document.getElementById('login-screen').classList.add('hidden');
+    var b = document.getElementById('warn-banner'); if(b){ b.style.display='flex'; }
     return true;
   }
   return false;
