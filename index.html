@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hidden Agenda Tool · CMKB</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal-dark:  #0B3948;
+  --teal-mid:   #5da7b2;
+  --teal-light: #c8e6ea;
+  --gold:       #9f8252;
+  --gold-light: #f0e6d6;
+  --flora:      #fffcf2;
+  --greige-d:   #8e897a;
+  --greige-l:   #dbd8ca;
+  --white:      #ffffff;
+  --sand:       #f5f0e8;
+  --evid-bg:    #e6f2e6;
+  --evid-fg:    #2d5a2d;
+  --text:       #1a1a1a;
+  --red-bg:     #fde8e8;
+  --red-fg:     #c0544a;
+  --yellow-bg:  #fef3cd;
+  --yellow-fg:  #856404;
+  --purple-bg:  #ede7f6;
+  --purple-fg:  #512da8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--flora); color: var(--text); min-height: 100vh; }
+
+/* ── LOGIN ── */
+#login-screen {
+  position: fixed; inset: 0;
+  background: var(--teal-dark);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; padding: 24px;
+}
+#login-screen.hidden { display: none; }
+.login-box {
+  background: var(--white); border-radius: 20px;
+  padding: 36px 28px; max-width: 360px; width: 100%;
+  box-shadow: 0 24px 80px rgba(0,0,0,.3);
+}
+.login-logo { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--teal-dark); margin-bottom: 4px; }
+.login-sub { font-size: 11px; color: var(--greige-d); margin-bottom: 28px; }
+.login-box label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--teal-dark); margin-bottom: 8px; }
+.login-input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--greige-l); border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 14px; color: var(--teal-dark); background: var(--flora); outline: none; margin-bottom: 16px; letter-spacing: .1em; transition: border-color .2s; }
+.login-input:focus { border-color: var(--teal-mid); }
+.login-btn { width: 100%; background: var(--teal-dark); color: var(--white); border: none; padding: 14px; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background .2s; }
+.login-btn:hover { background: var(--teal-mid); }
+.login-error { font-size: 11px; color: var(--red-fg); margin-top: 10px; text-align: center; min-height: 16px; }
+.login-hint { font-size: 10px; color: var(--greige-d); text-align: center; margin-top: 16px; line-height: 1.6; font-style: italic; }
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--teal-dark); padding: 18px 20px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 20px rgba(11,57,72,.3);
+}
+.app-header h1 { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--white); }
+.app-header .sub { font-size: 10px; color: var(--teal-light); margin-top: 2px; font-weight: 300; }
+.hbadge {
+  background: var(--gold); color: var(--white);
+  font-size: 10px; font-weight: 600; padding: 4px 10px;
+  border-radius: 20px; font-family: 'DM Mono', monospace;
+}
+
+/* ── TABS ── */
+.tabs { background: var(--teal-dark); display: flex; border-top: 1px solid rgba(255,255,255,.1); overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: 1; min-width: 72px; padding: 10px 6px; text-align: center; font-size: 10px; font-weight: 500; color: rgba(255,255,255,.5); cursor: pointer; transition: all .2s; border-bottom: 2px solid transparent; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+.tab:hover { color: rgba(255,255,255,.8); }
+.tab.active { color: var(--white); border-bottom-color: var(--gold); }
+
+/* ── CONTENT ── */
+.content { padding: 18px 16px 100px; max-width: 680px; margin: 0 auto; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── CARDS ── */
+.card { background: var(--white); border-radius: 14px; margin-bottom: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(11,57,72,.06); }
+.card-header { padding: 13px 16px; display: flex; align-items: center; gap: 10px; }
+.card-header.teal { background: var(--teal-dark); }
+.card-header.gold { background: var(--gold); }
+.card-header.mid { background: var(--teal-mid); }
+.card-header.purple { background: var(--purple-fg); }
+.card-header .icon { font-size: 16px; }
+.card-header .title { font-size: 12px; font-weight: 600; color: var(--white); text-transform: uppercase; letter-spacing: .05em; }
+.card-header .hint { font-size: 10px; color: rgba(255,255,255,.7); margin-top: 1px; }
+.card-body { padding: 16px; }
+
+/* ── INTRO CARD ── */
+.intro-hero { background: var(--teal-dark); padding: 24px 20px; position: relative; overflow: hidden; }
+.intro-hero::before { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(93,167,178,.15); border-radius: 50%; }
+.intro-hero h2 { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--white); line-height: 1.25; position: relative; z-index: 1; }
+.intro-hero .tagline { font-size: 12px; color: var(--teal-light); margin-top: 6px; position: relative; z-index: 1; }
+.intro-body { padding: 20px; }
+.intro-body p { font-size: 13px; line-height: 1.8; color: var(--text); margin-bottom: 12px; }
+.intro-body p:last-child { margin-bottom: 0; }
+
+.ebenen-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 14px; }
+.ebene-card {
+  background: var(--white); border-radius: 12px; padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(11,57,72,.06);
+  display: flex; align-items: flex-start; gap: 14px;
+  border-left: 4px solid transparent;
+}
+.ebene-card.e1 { border-color: var(--greige-l); }
+.ebene-card.e2 { border-color: var(--teal-light); }
+.ebene-card.e3 { border-color: var(--teal-mid); }
+.ebene-num-badge {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; font-family: 'DM Mono', monospace;
+  flex-shrink: 0; margin-top: 2px;
+}
+.ebene-card.e1 .ebene-num-badge { background: var(--greige-l); color: var(--greige-d); }
+.ebene-card.e2 .ebene-num-badge { background: var(--teal-light); color: var(--teal-dark); }
+.ebene-card.e3 .ebene-num-badge { background: var(--teal-dark); color: var(--white); }
+.ebene-title { font-size: 13px; font-weight: 600; color: var(--teal-dark); margin-bottom: 3px; }
+.ebene-desc { font-size: 12px; color: var(--greige-d); line-height: 1.5; }
+.ebene-example { font-size: 11px; color: var(--teal-mid); margin-top: 4px; font-style: italic; }
+
+/* ── FORMULAR ── */
+.field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--teal-dark); margin-bottom: 5px; }
+.field-sub { font-size: 10px; color: var(--greige-d); margin-bottom: 8px; font-style: italic; line-height: 1.5; }
+textarea, input[type=text], select {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--greige-l); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: var(--text); background: var(--flora);
+  outline: none; transition: border-color .2s; line-height: 1.6;
+}
+textarea { resize: vertical; min-height: 72px; }
+textarea:focus, input[type=text]:focus, select:focus { border-color: var(--teal-mid); }
+.field-wrap { margin-bottom: 14px; }
+.field-wrap:last-child { margin-bottom: 0; }
+
+/* ── KONTEXT CHIPS ── */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.chip {
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 500; cursor: pointer;
+  border: 1.5px solid var(--greige-l);
+  background: var(--flora); color: var(--greige-d);
+  transition: all .15s; user-select: none;
+}
+.chip.selected { background: var(--teal-dark); color: var(--white); border-color: var(--teal-dark); }
+.chip:hover:not(.selected) { border-color: var(--teal-mid); color: var(--teal-dark); }
+
+/* ── INTENSITÄT SLIDER ── */
+.intensitaet-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.intensitaet-row input[type=range] {
+  flex: 1; height: 6px; -webkit-appearance: none;
+  border-radius: 3px; outline: none; cursor: pointer; padding: 0; min-height: unset;
+  background: linear-gradient(to right, var(--teal-light), var(--teal-dark));
+}
+.intensitaet-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--teal-dark);
+  border: 2px solid var(--white); box-shadow: 0 2px 6px rgba(11,57,72,.3); cursor: pointer;
+}
+.intensitaet-val { min-width: 28px; text-align: right; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: var(--teal-dark); }
+.intensitaet-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--greige-d); margin-top: 4px; }
+
+/* ── HYPOTHESEN LISTE ── */
+.hypothese-item {
+  background: var(--flora); border: 1.5px solid var(--greige-l);
+  border-radius: 12px; padding: 14px; margin-bottom: 10px;
+  position: relative;
+}
+.hypothese-item .h-num {
+  position: absolute; top: 12px; right: 12px;
+  font-size: 10px; font-family: 'DM Mono', monospace;
+  color: var(--greige-d); background: var(--greige-l);
+  padding: 2px 8px; border-radius: 10px;
+}
+.hypothese-item .h-text { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 8px; padding-right: 48px; }
+.hypothese-item .h-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.h-badge {
+  font-size: 10px; font-weight: 600; padding: 3px 10px;
+  border-radius: 10px; font-family: 'DM Mono', monospace;
+}
+.h-badge.stark { background: var(--red-bg); color: var(--red-fg); }
+.h-badge.mittel { background: var(--yellow-bg); color: var(--yellow-fg); }
+.h-badge.schwach { background: var(--evid-bg); color: var(--evid-fg); }
+.h-badge.kontext { background: var(--teal-light); color: var(--teal-dark); }
+.h-badge.status-offen { background: var(--yellow-bg); color: var(--yellow-fg); }
+.h-badge.status-bestaetigt { background: var(--evid-bg); color: var(--evid-fg); }
+.h-badge.status-widerlegt { background: var(--greige-l); color: var(--greige-d); }
+.hypothese-actions { display: flex; gap: 6px; margin-top: 10px; }
+.h-btn { flex: 1; padding: 7px; border: 1.5px solid var(--greige-l); border-radius: 8px; background: var(--white); font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; color: var(--greige-d); cursor: pointer; transition: all .15s; }
+.h-btn:hover { border-color: var(--teal-mid); color: var(--teal-dark); }
+.h-btn.del:hover { border-color: var(--red-fg); color: var(--red-fg); background: var(--red-bg); }
+
+/* ── MUSTER LISTE ── */
+.muster-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 0; border-bottom: 1px solid var(--greige-l);
+}
+.muster-item:last-child { border-bottom: none; }
+.muster-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.muster-text { font-size: 12px; color: var(--text); line-height: 1.6; }
+.muster-text strong { color: var(--teal-dark); display: block; margin-bottom: 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+
+/* ── SAVE BTN ── */
+.save-btn {
+  width: 100%; background: var(--teal-dark); color: var(--white);
+  border: none; padding: 15px; border-radius: 12px;
+  font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all .2s; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+}
+.save-btn:hover { background: var(--teal-mid); }
+.save-btn.saved { background: #2d6a2d; }
+.add-btn {
+  width: 100%; padding: 11px; border: 1.5px dashed var(--greige-l);
+  border-radius: 10px; background: var(--flora); color: var(--greige-d);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer;
+  transition: all .15s; margin-top: 4px;
+}
+.add-btn:hover { border-color: var(--teal-mid); color: var(--teal-dark); }
+
+/* ── ÜBERSICHT ── */
+.uebersicht-empty { text-align: center; padding: 40px 20px; color: var(--greige-d); font-size: 13px; }
+.uebersicht-empty .icon { font-size: 32px; margin-bottom: 12px; }
+.filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.filter-chip { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--greige-l); background: var(--white); color: var(--greige-d); transition: all .15s; }
+.filter-chip.active { background: var(--teal-dark); color: var(--white); border-color: var(--teal-dark); }
+
+/* ── LINK DIALOG ── */
+#link-dialog { position: fixed; inset: 0; background: rgba(11,57,72,.5); display: none; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+#link-dialog.vis { display: flex; }
+.link-box { background: var(--white); border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(11,57,72,.3); }
+.link-box h3 { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--teal-dark); margin-bottom: 8px; }
+.link-box p { font-size: 12px; color: var(--greige-d); line-height: 1.6; margin-bottom: 14px; }
+#link-output { width: 100%; padding: 10px 12px; border: 1.5px solid var(--teal-light); border-radius: 8px; font-size: 10px; font-family: 'DM Mono', monospace; color: var(--teal-dark); background: var(--teal-light); margin-bottom: 12px; word-break: break-all; }
+.link-btns { display: flex; gap: 8px; }
+.link-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
+.btn-copy { background: var(--teal-dark); color: var(--white); }
+.btn-close-d { background: var(--greige-l); color: var(--greige-d); }
+
+/* ── FAB ── */
+.fab-row { position: fixed; bottom: 20px; right: 16px; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.fab { background: var(--teal-dark); color: var(--white); border: none; border-radius: 28px; padding: 11px 16px; font-size: 11px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; box-shadow: 0 4px 16px rgba(11,57,72,.3); transition: all .2s; display: flex; align-items: center; gap: 6px; }
+.fab:hover { background: var(--teal-mid); }
+.fab.gold { background: var(--gold); }
+
+/* ── TOAST ── */
+#toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--teal-dark); color: var(--white); padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: 500; opacity: 0; pointer-events: none; transition: all .3s; z-index: 998; white-space: nowrap; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── EVID BAR ── */
+.evid-bar { background: var(--evid-bg); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 11px; color: var(--evid-fg); font-style: italic; line-height: 1.6; }
+
+/* ── STATUS BADGE ── */
+.status-select { font-size: 11px; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--greige-l); background: var(--flora); font-family: 'DM Sans', sans-serif; color: var(--text); cursor: pointer; width: auto; min-width: 120px; }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Hidden Agenda Tool</div>
+    <div class="login-sub">Change Maker Karriere Beratung · Kathrin Heinrich</div>
+    <label>Dein persönliches Passwort</label>
+    <input class="login-input" type="password" id="login-pw"
+      placeholder="Dein persönliches Passwort"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Tool öffnen →</button>
+    <div class="login-error" id="login-error"></div>
+    <div class="login-hint">Dein Passwort hast du von Kathrin erhalten.<br>Bei Fragen: info@kathrinheinrich.de</div>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<header class="app-header">
+  <div>
+    <h1>Hidden Agenda Tool</h1>
+    <div class="sub">Beobachten · Wahrnehmen · Hypothesen bilden</div>
+  </div>
+  <div class="hbadge" id="count-badge">0 Hypothesen</div>
+</header>
+
+<nav class="tabs">
+  <div class="tab active" onclick="showTab('start')">Einführung</div>
+  <div class="tab" onclick="showTab('neu')">Neu</div>
+  <div class="tab" onclick="showTab('uebersicht')">Übersicht</div>
+  <div class="tab" onclick="showTab('muster')">Muster</div>
+</nav>
+<div id="warn-banner" style="display:none;background:#fde8e8;border-left:4px solid #c0544a;padding:12px 16px;align-items:flex-start;gap:10px;font-size:11px;color:#c0544a;line-height:1.7;">
+  <span style="font-size:18px;flex-shrink:0;">&#9888;&#65039;</span>
+  <span><strong>Achtung:</strong> Wenn du keinen Link erstellst, sind deine Daten weg.<br>
+  Klicke nach deinen Einträgen auf <strong>&#128279; Link zum Speichern deiner Daten erstellen</strong> — speichere ihn als Lesezeichen oder schick ihn dir per E-Mail. Nur so sind deine Daten gesichert.</span>
+</div>
+
+
+
+
+<div class="content">
+
+  <!-- ═══ EINFÜHRUNG ═══ -->
+  <div class="screen active" id="screen-start">
+    <div class="card">
+      <div class="intro-hero">
+        <h2>Wirksamer führen.<br>Schneller ankommen.<br>Das Unsichtbare sichtbar machen.</h2>
+        <div class="tagline">Strukturierte Wahrnehmung · Hypothesen · Muster</div>
+      </div>
+      <div class="intro-body">
+        <p>Jede Organisation hat eine sichtbare und eine unsichtbare Ebene. Offizielle Agenden und echte Interessen. Was gesagt wird — und was gemeint ist. Hidden Agendas sind nicht per se böse. Sie sind menschlich.</p>
+        <p>Wer die Hidden Agendas in seinem System kennt und strategisch darauf reagiert — führt wirksamer. Trifft bessere Entscheidungen. Baut stärkere Beziehungen. Und sichert seine Ziele auch dort wo andere das Spiel noch nicht sehen.</p>
+        <p>Für dein Team bedeutet das: Du erkennst Spannungen bevor sie eskalieren. Du verstehst was dein Team wirklich braucht — jenseits dessen was gesagt wird. Und du kannst gezielt Vertrauen aufbauen wo es fehlt.</p>
+        <p>Dieses Tool führt dich in vier Schritten — von der Beobachtung bis zum konkreten Plan.</p>
+      </div>
+    </div>
+
+    <div class="evid-bar">📚 Evidenz: Führungskräfte die implizite Informationen wahrnehmen und strukturiert reflektieren treffen signifikant bessere Entscheidungen in politisch komplexen Umgebungen. (Schein 2010 · Argyris 1990)</div>
+
+    <div class="ebenen-grid">
+      <div class="ebene-card e1">
+        <div class="ebene-num-badge">01</div>
+        <div>
+          <div class="ebene-title">Beobachten</div>
+          <div class="ebene-desc">Was passiert tatsächlich? Reine Fakten — ohne Interpretation. Wer spricht mit wem? Wer schweigt? Wer reagiert wie?</div>
+          <div class="ebene-example">„In jedem Meeting unterbricht X die Aussagen von Y."</div>
+        </div>
+      </div>
+      <div class="ebene-card e2">
+        <div class="ebene-num-badge">02</div>
+        <div>
+          <div class="ebene-title">Wahrnehmen</div>
+          <div class="ebene-desc">Was spüre ich jenseits der Worte? Wo stimmen Körpersprache und Aussage nicht überein? Wo wird ausgewichen?</div>
+          <div class="ebene-example">„X lacht wenn Y Fehler macht — aber das Lachen wirkt angespannt."</div>
+        </div>
+      </div>
+      <div class="ebene-card e3">
+        <div class="ebene-num-badge">03</div>
+        <div>
+          <div class="ebene-title">Hypothese bilden</div>
+          <div class="ebene-desc">Was könnte dahinterstecken? Bewusst als Hypothese — nicht als Wahrheit. Was würde erklären was ich sehe?</div>
+          <div class="ebene-example">„Hypothese: X will verhindern dass Y sichtbarer wird als er selbst."</div>
+        </div>
+      </div>
+      <div class="ebene-card" style="border-left:4px solid var(--gold);">
+        <div class="ebene-num-badge" style="background:var(--gold);color:var(--white);">04</div>
+        <div>
+          <div class="ebene-title">WEHP — Handeln</div>
+          <div class="ebene-desc">Wunsch · Emotionen · Hindernisse · Plan. Was will ich erreichen? Was fühle ich? Was blockiert mich? Was ist mein konkreter nächster Schritt?</div>
+          <div class="ebene-example">„Ich will X direkt ansprechen — in einem 1:1 ohne Publikum."</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="showTab('neu')">
+      Erste Beobachtung eintragen →
+    </button>
+  </div>
+
+  <!-- ═══ NEU ═══ -->
+  <div class="screen" id="screen-neu">
+
+    <!-- Schritt 1: Beobachten -->
+    <div class="card">
+      <div class="card-header teal">
+        <span class="icon">👁</span>
+        <div>
+          <div class="title">Schritt 1 — Beobachten</div>
+          <div class="hint">Was ist passiert? Nur Fakten — keine Interpretation</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-wrap">
+          <div class="field-label">Situation</div>
+          <div class="field-sub">Wann · wo · mit wem — konkreter Kontext</div>
+          <input type="text" id="n-situation" placeholder="z.B. Teammeeting am Montag, 14 Uhr, Teilnehmer: X, Y, Z">
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Was habe ich beobachtet?</div>
+          <div class="field-sub">Reine Fakten — was wurde gesagt, getan, nicht gesagt, nicht getan?</div>
+          <textarea id="n-beobachtung" placeholder="z.B. X hat das Thema Budget dreimal umgangen. Y hat zweimal nachgefragt und keine direkte Antwort bekommen. Z hat während der Diskussion nur auf sein Handy geschaut."></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Kontext — worum ging es offiziell?</div>
+          <div class="field-sub">Was war das offizielle Thema / der offizielle Anlass?</div>
+          <div class="chip-row" id="kontext-chips">
+            <div class="chip" onclick="toggleChip(this,'Meeting')">Meeting</div>
+            <div class="chip" onclick="toggleChip(this,'1:1')">1:1</div>
+            <div class="chip" onclick="toggleChip(this,'Entscheidung')">Entscheidung</div>
+            <div class="chip" onclick="toggleChip(this,'E-Mail')">E-Mail</div>
+            <div class="chip" onclick="toggleChip(this,'Flurgespräch')">Flurgespräch</div>
+            <div class="chip" onclick="toggleChip(this,'Präsentation')">Präsentation</div>
+            <div class="chip" onclick="toggleChip(this,'Konflikt')">Konflikt</div>
+            <div class="chip" onclick="toggleChip(this,'Sonstiges')">Sonstiges</div>
+          </div>
+          <input type="text" id="n-kontext-freitext" placeholder="z.B. Gespräch mit Kunde X über Projekt Y · Mitarbeitergespräch zum Thema Z · Teamrunde Budgetplanung..." style="margin-top:8px;">
+          <div style="font-size:10px;color:var(--greige-d);margin-top:4px;font-style:italic;">Freitext für spezifische Themen · Personen · Situationen die sich wiederholen</div>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Beteiligte Personen</div>
+          <input type="text" id="n-personen" placeholder="z.B. CCO, Teamlead Marketing, HR">
+        </div>
+      </div>
+    </div>
+
+    <!-- Schritt 2: Wahrnehmen -->
+    <div class="card">
+      <div class="card-header mid">
+        <span class="icon">🔍</span>
+        <div>
+          <div class="title">Schritt 2 — Wahrnehmen</div>
+          <div class="hint">Was spüre ich jenseits der Worte?</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-wrap">
+          <div class="field-label">Was habe ich wahrgenommen — jenseits der Worte?</div>
+          <div class="field-sub">Körpersprache · Ton · Energie · Spannung · was nicht gesagt wurde</div>
+          <textarea id="n-wahrnehmung" placeholder="z.B. Die Energie im Raum wurde plötzlich angespannt als das Thema Budget aufkam. X's Stimme wurde höher. Y zog sich körperlich zurück. Niemand hat Augenkontakt gemacht."></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Was hat mich überrascht?</div>
+          <div class="field-sub">Was war unerwartet — was passt nicht zusammen?</div>
+          <textarea id="n-ueberraschung" placeholder="z.B. X ist normalerweise sehr direkt — aber heute hat er konsequent ausgewichen. Das war ungewöhnlich."></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Mein Körper — was habe ich gespürt?</div>
+          <div class="field-sub">Eigene Reaktionen · Anspannung · Unbehagen · Überraschung</div>
+          <textarea id="n-koerper" placeholder="z.B. Ich habe gespürt wie ich mich zurückgehalten habe. Mein Magen hat sich angespannt. Ich wollte das Thema wechseln." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schritt 3: Hypothese -->
+    <div class="card">
+      <div class="card-header gold">
+        <span class="icon">💡</span>
+        <div>
+          <div class="title">Schritt 3 — Hypothese bilden</div>
+          <div class="hint">Was könnte dahinterstecken? Immer als Hypothese — nie als Wahrheit</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-wrap">
+          <div class="field-label">Meine Hypothese</div>
+          <div class="field-sub">Was würde erklären was ich beobachtet und wahrgenommen habe? Formuliere sie als "Hypothese: ..."</div>
+          <textarea id="n-hypothese" placeholder="Hypothese: X will verhindern dass das Budget-Thema eskaliert weil er selbst eine Fehlentscheidung getroffen hat die noch nicht sichtbar ist. Y weiss davon und geht deshalb auf Konfrontationskurs."></textarea>
+        </div>
+        <div class="field-wrap">
+          <div style="background:var(--teal-light);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:600;color:var(--teal-dark);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">🔍 Bestätigungsfehler-Check</div>
+            <div style="font-size:11px;color:var(--teal-dark);line-height:1.6;font-style:italic;">Unser Gehirn sucht Bestätigung — nicht Wahrheit. Bevor du weitergehst: Was spricht gegen deine Hypothese?</div>
+          </div>
+          <div class="field-label">Was würde meine Hypothese widerlegen?</div>
+          <div class="field-sub">Was beobachte ich das dagegen spricht? Was könnte ich übersehen haben?</div>
+          <textarea id="n-gegenbeweis" placeholder="z.B. X hat letzte Woche das Budget-Thema selbst angesprochen — das passt nicht zu meiner Hypothese. Vielleicht ist er einfach überlastet und nicht strategisch ausweichend." style="min-height:60px;"></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">System oder Person?</div>
+          <div class="field-sub">Ist das ein individuelles Verhalten — oder ein Systemmuster? Würde sich dasselbe zeigen wenn X nicht da wäre?</div>
+          <div class="chip-row">
+            <div class="chip" id="chip-person" onclick="selectSystemPerson('person')">👤 Eher individuell</div>
+            <div class="chip" id="chip-system" onclick="selectSystemPerson('system')">🏢 Eher Systemmuster</div>
+            <div class="chip" id="chip-beides" onclick="selectSystemPerson('beides')">↔ Beides</div>
+          </div>
+          <textarea id="n-system" placeholder="z.B. Das Ausweichen beim Budget-Thema passiert bei allen die X direkt berichten — nicht nur bei mir. Das ist ein Systemmuster." style="min-height:60px;margin-top:8px;"></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Intensität — wie stark ist dieses Signal?</div>
+          <div class="intensitaet-row">
+            <input type="range" min="1" max="5" value="3" id="n-intensitaet" oninput="updateIntensitaet()">
+            <span class="intensitaet-val" id="intensitaet-val">3</span>
+          </div>
+          <div class="intensitaet-labels">
+            <span>Schwaches Signal</span>
+            <span>Starkes Signal</span>
+          </div>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Was könnte ich tun um die Hypothese zu testen?</div>
+          <div class="field-sub">Welche nächsten Beobachtungen · welche Gespräche würden helfen?</div>
+          <textarea id="n-testen" placeholder="z.B. Nächstes 1:1 mit X — direkt fragen wie er das Budget-Thema einschätzt. Beobachten wie er reagiert wenn Y im Raum ist vs. wenn Y nicht dabei ist." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schritt 4: WEHP -->
+    <div class="card">
+      <div class="card-header" style="background:var(--gold);">
+        <span class="icon">🎯</span>
+        <div>
+          <div class="title">Schritt 4 — WEHP Frame</div>
+          <div class="hint">Von der Hypothese zur Handlung</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-wrap">
+          <div style="background:var(--purple-bg);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:600;color:var(--purple-fg);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">⚡ Emotionscheck — bevor du handelst</div>
+            <div style="font-size:12px;color:var(--purple-fg);line-height:1.6;margin-bottom:10px;">Emotionaler Stress blockiert strategisches Denken. Bin ich gerade in einem Zustand in dem ich gut handeln kann?</div>
+            <div style="display:flex;gap:8px;">
+              <div class="chip" id="chip-ja" onclick="selectZustand('ja')" style="flex:1;text-align:center;">✅ Ja — ich bin klar</div>
+              <div class="chip" id="chip-nein" onclick="selectZustand('nein')" style="flex:1;text-align:center;">⏸ Ich brauche erst Abstand</div>
+            </div>
+          </div>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">W — Mein Ziel</div>
+          <div class="field-sub">Was will ich in dieser Situation erreichen? Was ist mein strategisches Ziel — jenseits der ersten Reaktion?</div>
+          <textarea id="n-wunsch" placeholder="z.B. Ich will Klarheit über die Budget-Entscheidung. Und ich will dass X mich als strategischen Partner sieht — nicht als Bedrohung." style="min-height:60px;"></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">E — Meine Emotionen</div>
+          <div class="field-sub">Was löst das in mir aus? Wie beeinflusst das mein Handeln — und wie nutze ich das bewusst?</div>
+          <textarea id="n-emotionen" placeholder="z.B. Ich bin frustriert über das Ausweichen. Gleichzeitig spüre ich Neugier — was steckt wirklich dahinter? Die Frustration hilft mir nicht weiter, die Neugier schon." style="min-height:60px;"></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">H — Die Hindernisse</div>
+          <div class="field-sub">Was steht zwischen mir und meinem Ziel? Wer · was · welche Strukturen?</div>
+          <textarea id="n-hindernisse" placeholder="z.B. X ist defensiv wenn er unter Druck steht. Ein direktes Gespräch im Meeting würde ihn in die Enge treiben. Ich brauche einen anderen Kontext." style="min-height:60px;"></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">P — Mein Plan</div>
+          <div class="field-sub">Ein konkreter nächster Schritt · bis wann · mit wem</div>
+          <textarea id="n-plan" placeholder="z.B. 1:1 mit X diese Woche — informell, ohne Agenda. Ich frage ihn wie er das Budget-Thema strategisch einschätzt. Ich höre zu bevor ich spreche." style="min-height:60px;"></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Ergebnis — was ist passiert?</div>
+          <div class="field-sub">Nach der Umsetzung: Was habe ich getan — und was ist passiert? Leer lassen bis du gehandelt hast.</div>
+          <textarea id="n-ergebnis" placeholder="z.B. Das 1:1 hat stattgefunden. X hat sich geöffnet — er hat tatsächlich Druck von oben wegen des Budgets. Meine Hypothese war richtig aber der Grund war ein anderer als gedacht." style="min-height:60px;"></textarea>
+        </div>
+        <div style="background:var(--gold-light);border-radius:10px;padding:14px;margin-top:8px;">
+          <div style="font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">💡 Warum ist das wichtig?</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.7;">
+            Wer die Hidden Agendas in seinem System kennt und strategisch darauf reagiert — führt wirksamer. Trifft bessere Entscheidungen. Baut stärkere Beziehungen. Und sichert seine Ziele auch dort wo andere das Spiel noch nicht sehen.<br><br>
+            Für die Team Interaktion bedeutet das: Du erkennst Spannungen bevor sie eskalieren. Du verstehst was dein Team wirklich braucht. Und du kannst gezielt Vertrauen aufbauen wo es fehlt.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="save-btn" id="save-neu-btn" onclick="saveHypothese()">
+      Hypothese speichern
+    </button>
+  </div>
+
+  <!-- ═══ ÜBERSICHT ═══ -->
+  <div class="screen" id="screen-uebersicht">
+    <div class="filter-row">
+      <div class="filter-chip active" onclick="filterHypothesen('alle',this)">Alle</div>
+      <div class="filter-chip" onclick="filterHypothesen('offen',this)">Offen</div>
+      <div class="filter-chip" onclick="filterHypothesen('bestaetigt',this)">Bestätigt</div>
+      <div class="filter-chip" onclick="filterHypothesen('widerlegt',this)">Widerlegt</div>
+      <div class="filter-chip" onclick="filterHypothesen('stark',this)">🔴 Stark</div>
+    </div>
+    <div id="uebersicht-empty" class="uebersicht-empty">
+      <div class="icon">💡</div>
+      <div>Noch keine Hypothesen.</div>
+      <div style="margin-top:6px;font-size:11px;">Trage deine erste Beobachtung ein.</div>
+    </div>
+    <div id="hypothesen-list"></div>
+  </div>
+
+  <!-- ═══ MUSTER ═══ -->
+  <div class="screen" id="screen-muster">
+    <div class="card">
+      <div class="card-header teal">
+        <span class="icon">🔄</span>
+        <div>
+          <div class="title">Muster erkennen</div>
+          <div class="hint">Was wiederholt sich? Was zeigt das System?</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="muster-empty" style="text-align:center;padding:20px;color:var(--greige-d);font-size:12px;">
+          Noch nicht genug Daten für Muster.<br>
+          <span style="font-size:11px;">Trage mindestens 3 Hypothesen ein.</span>
+        </div>
+        <div id="muster-content" style="display:none;">
+          <div id="muster-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header gold">
+        <span class="icon">📓</span>
+        <div>
+          <div class="title">Meine System-Reflexion</div>
+          <div class="hint">Was sagt mir das alles über dieses System?</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="field-wrap">
+          <div class="field-label">Was habe ich über dieses System gelernt?</div>
+          <textarea id="m-system" placeholder="Was sind die unausgesprochenen Regeln? Wer hat wirklich Macht? Was darf nicht gesagt werden?"></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Was bedeutet das für meine Strategie?</div>
+          <textarea id="m-strategie" placeholder="Wie verändert dieses Wissen mein Vorgehen? Was muss ich anders machen?"></textarea>
+        </div>
+        <div class="field-wrap">
+          <div class="field-label">Was nehme ich in die nächste Session mit?</div>
+          <textarea id="m-session" placeholder="Welche Hypothesen · welche Muster möchte ich mit Kathrin besprechen?" style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+    <button class="save-btn" onclick="saveMuster()">Reflexion speichern</button>
+  </div>
+
+</div><!-- /content -->
+
+<!-- FAB -->
+<div class="fab-row">
+  <button class="fab gold" onclick="createLink()">🔗 Link zum Speichern deiner Daten erstellen</button>
+  <button class="fab" onclick="showTab('neu')">+ Neue Hypothese</button>
+</div>
+
+<!-- LINK DIALOG -->
+<div id="link-dialog">
+  <div class="link-box">
+    <h3>🔗 Dein persönlicher Link</h3>
+    <p>Kopiere diesen Link und speichere ihn sicher — zum Beispiel als Lesezeichen im Browser oder in deinen Notizen.</p>
+    <input id="link-output" readonly type="text" value="">
+    <div class="link-btns">
+      <button class="btn-copy" onclick="copyLink()">Kopieren</button>
+      <button class="btn-close-d" onclick="closeLink()">Schliessen</button>
+    </div>
+    <div style="background:#fde8e8;border-radius:10px;padding:12px 14px;margin-top:12px;border-left:4px solid #c0544a;">
+      <div style="font-size:11px;font-weight:700;color:#c0544a;margin-bottom:4px;">⚠️ Wichtig — bitte lesen</div>
+      <div style="font-size:11px;color:#c0544a;line-height:1.7;">
+        Deine Daten existieren <strong>ausschliesslich in diesem Link</strong>. Es gibt keinen Server der deine Daten speichert.<br>
+        <strong>Wenn du diesen Link verlierst, sind deine Einträge unwiederbringlich weg.</strong><br>
+        Speichere ihn jetzt — als Lesezeichen, in deinen Notizen oder schick ihn dir selbst per E-Mail.
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--greige-d);margin-top:10px;text-align:center;">
+      🔒 Kein Server · keine Weitergabe · volle Kontrolle bei dir
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'cmkb_hidden_agenda_v1';
+const SESSION_KEY = 'cmkb_ha_auth';
+let appData = { hypothesen: [], muster: null };
+let currentFilter = 'alle';
+let selectedKontexte = [];
+let selectedSystemPerson = null;
+let selectedZustand = null;
+
+// ── LOGIN ─────────────────────────────────────────────────
+function isValidPassword(pw) {
+  const c = pw.trim();
+  // Akzeptiert: K-YYYY-XX bis K-YYYY-XXXX (2-4 Stellen) · mit oder ohne Bindestrich · Groß/Klein
+  return /^K[\-]?\d{4}[\-]?\d{2,4}$/i.test(c);
+}
+function doLogin() {
+  const pw = document.getElementById('login-pw').value;
+  const err = document.getElementById('login-error');
+  if (isValidPassword(pw)) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('login-screen').classList.add('hidden');
+    var b = document.getElementById('warn-banner'); if(b){ b.style.display='flex'; }
+    err.textContent = '';
+    init();
+  } else {
+    err.textContent = 'Passwort nicht erkannt — bitte prüfe deine Client-ID.';
+    document.getElementById('login-pw').style.borderColor = '#c0544a';
+    setTimeout(() => { document.getElementById('login-pw').style.borderColor = ''; }, 1500);
+  }
+}
+function checkLogin() {
+  if (sessionStorage.getItem(SESSION_KEY)) {
+    document.getElementById('login-screen').classList.add('hidden');
+    var b = document.getElementById('warn-banner'); if(b){ b.style.display='flex'; }
+    return true;
+  }
+  return false;
+}
+
+// ── DATA ─────────────────────────────────────────────────
+function loadData() {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    const d = p.get('d');
+    if (d) { appData = JSON.parse(decodeURIComponent(atob(d))); localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); return; }
+  } catch(e) {}
+  try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) appData = JSON.parse(raw); } catch(e) {}
+}
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  updateBadge();
+}
+
+function init() {
+  if (!checkLogin()) return;
+  loadData();
+  updateBadge();
+  loadMusterReflexion();
+}
+
+function updateBadge() {
+  const n = appData.hypothesen.length;
+  document.getElementById('count-badge').textContent = n + ' Hypothes' + (n === 1 ? 'e' : 'en');
+}
+
+// ── CHIPS ─────────────────────────────────────────────────
+function toggleChip(el, val) {
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) selectedKontexte.push(val);
+  else selectedKontexte = selectedKontexte.filter(k => k !== val);
+}
+
+function selectSystemPerson(val) {
+  selectedSystemPerson = val;
+  ['chip-person','chip-system','chip-beides'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('selected');
+  });
+  const sel = document.getElementById('chip-' + val);
+  if (sel) sel.classList.add('selected');
+}
+
+function selectZustand(val) {
+  selectedZustand = val;
+  ['chip-ja','chip-nein'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('selected');
+  });
+  const sel = document.getElementById('chip-' + val);
+  if (sel) sel.classList.add('selected');
+}
+
+function resetChips() {
+  selectedKontexte = [];
+  document.querySelectorAll('#kontext-chips .chip').forEach(c => c.classList.remove('selected'));
+}
+
+function updateIntensitaet() {
+  const val = document.getElementById('n-intensitaet').value;
+  document.getElementById('intensitaet-val').textContent = val;
+}
+
+// ── SAVE HYPOTHESE ─────────────────────────────────────────
+function saveHypothese() {
+  const h = {
+    id: Date.now(),
+    datum: new Date().toISOString().slice(0,10),
+    situation: document.getElementById('n-situation').value,
+    beobachtung: document.getElementById('n-beobachtung').value,
+    kontext: [...selectedKontexte],
+    kontextFreitext: document.getElementById('n-kontext-freitext').value,
+    personen: document.getElementById('n-personen').value,
+    wahrnehmung: document.getElementById('n-wahrnehmung').value,
+    ueberraschung: document.getElementById('n-ueberraschung').value,
+    koerper: document.getElementById('n-koerper').value,
+    hypothese: document.getElementById('n-hypothese').value,
+    gegenbeweis: document.getElementById('n-gegenbeweis').value,
+    system: document.getElementById('n-system').value,
+    systemTyp: selectedSystemPerson,
+    intensitaet: parseInt(document.getElementById('n-intensitaet').value),
+    testen: document.getElementById('n-testen').value,
+    zustand: selectedZustand,
+    wunsch: document.getElementById('n-wunsch').value,
+    emotionen: document.getElementById('n-emotionen').value,
+    hindernisse: document.getElementById('n-hindernisse').value,
+    plan: document.getElementById('n-plan').value,
+    ergebnis: document.getElementById('n-ergebnis').value,
+    status: 'offen',
+  };
+
+  if (!h.beobachtung && !h.hypothese) { showToast('Bitte mindestens Beobachtung oder Hypothese eintragen.'); return; }
+
+  appData.hypothesen.push(h);
+  saveData();
+
+  // Reset
+  ['n-situation','n-beobachtung','n-personen','n-wahrnehmung','n-ueberraschung',
+   'n-koerper','n-hypothese','n-gegenbeweis','n-system','n-testen',
+   'n-wunsch','n-emotionen','n-hindernisse','n-plan','n-ergebnis','n-kontext-freitext']
+    .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('n-intensitaet').value = 3;
+  updateIntensitaet();
+  resetChips();
+  selectedSystemPerson = null;
+  selectedZustand = null;
+  ['chip-person','chip-system','chip-beides','chip-ja','chip-nein']
+    .forEach(id => document.getElementById(id).classList.remove('selected'));
+
+  const btn = document.getElementById('save-neu-btn');
+  btn.innerHTML = '<span>✓ Gespeichert!</span>';
+  btn.classList.add('saved');
+  setTimeout(() => { btn.innerHTML = 'Hypothese speichern'; btn.classList.remove('saved'); }, 2000);
+
+  showToast('Hypothese gespeichert ✓');
+  buildUebersicht();
+}
+
+// ── ÜBERSICHT ─────────────────────────────────────────────
+function buildUebersicht() {
+  const list = document.getElementById('hypothesen-list');
+  const empty = document.getElementById('uebersicht-empty');
+
+  let filtered = appData.hypothesen;
+  if (currentFilter === 'offen') filtered = filtered.filter(h => h.status === 'offen');
+  else if (currentFilter === 'bestaetigt') filtered = filtered.filter(h => h.status === 'bestaetigt');
+  else if (currentFilter === 'widerlegt') filtered = filtered.filter(h => h.status === 'widerlegt');
+  else if (currentFilter === 'stark') filtered = filtered.filter(h => h.intensitaet >= 4);
+
+  if (filtered.length === 0) {
+    empty.style.display = 'block'; list.innerHTML = ''; return;
+  }
+  empty.style.display = 'none';
+
+  list.innerHTML = '';
+  [...filtered].reverse().forEach(h => {
+    const intensLabel = ['','Schwach','Eher schwach','Mittel','Stark','Sehr stark'][h.intensitaet] || '';
+    const intensClass = h.intensitaet >= 4 ? 'stark' : h.intensitaet === 3 ? 'mittel' : 'schwach';
+    const statusClass = 'status-' + h.status;
+    const statusLabel = { offen: 'Offen', bestaetigt: 'Bestätigt', widerlegt: 'Widerlegt' }[h.status] || h.status;
+    const d = new Date(h.datum + 'T00:00:00');
+    const dateStr = d.toLocaleDateString('de-DE', { day:'numeric', month:'short', year:'numeric' });
+
+    const div = document.createElement('div');
+    div.className = 'hypothese-item';
+    div.innerHTML = `
+      <div class="h-num">${dateStr}</div>
+      ${h.situation ? `<div style="font-size:11px;color:var(--greige-d);margin-bottom:6px;font-style:italic;">📍 ${h.situation}</div>` : ''}
+      ${h.beobachtung ? `<div style="font-size:11px;color:var(--teal-dark);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Beobachtung</div><div class="h-text" style="padding-right:0;">${h.beobachtung}</div>` : ''}
+      ${h.hypothese ? `<div style="font-size:11px;color:var(--gold);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;margin-top:8px;">Hypothese</div><div class="h-text" style="padding-right:0;font-style:italic;">${h.hypothese}</div>` : ''}
+      ${h.plan ? `<div style="font-size:11px;color:var(--teal-mid);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;margin-top:8px;">Plan</div><div class="h-text" style="padding-right:0;">${h.plan}</div>` : ''}
+      ${h.ergebnis ? `<div style="font-size:11px;color:#2d6a2d;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;margin-top:8px;">✅ Ergebnis</div><div class="h-text" style="padding-right:0;background:var(--evid-bg);border-radius:8px;padding:8px 10px;">${h.ergebnis}</div>` : ''}
+      <div class="h-meta" style="margin-top:10px;">
+        <span class="h-badge ${intensClass}">⚡ ${intensLabel}</span>
+        <span class="h-badge ${statusClass}">${statusLabel}</span>
+        ${h.kontext && h.kontext.length > 0 ? h.kontext.map(k => `<span class="h-badge kontext">${k}</span>`).join('') : ''}
+        ${h.kontextFreitext ? `<span class="h-badge kontext" style="background:var(--gold-light);color:var(--gold);">📝 ${h.kontextFreitext}</span>` : ''}
+        ${h.personen ? `<span class="h-badge kontext">👤 ${h.personen}</span>` : ''}
+      </div>
+      <div class="hypothese-actions">
+        <button class="h-btn" onclick="updateStatus(${h.id},'bestaetigt')">✓ Bestätigen</button>
+        <button class="h-btn" onclick="updateStatus(${h.id},'widerlegt')">✗ Widerlegen</button>
+        <button class="h-btn" onclick="updateStatus(${h.id},'offen')">↺ Offen</button>
+        <button class="h-btn del" onclick="deleteHypothese(${h.id})">🗑</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+  buildMuster();
+}
+
+function filterHypothesen(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  buildUebersicht();
+}
+
+function updateStatus(id, status) {
+  const h = appData.hypothesen.find(h => h.id === id);
+  if (h) { h.status = status; saveData(); buildUebersicht(); showToast('Status aktualisiert'); }
+}
+
+function deleteHypothese(id) {
+  if (!confirm('Hypothese löschen?')) return;
+  appData.hypothesen = appData.hypothesen.filter(h => h.id !== id);
+  saveData(); buildUebersicht(); showToast('Gelöscht');
+}
+
+// ── MUSTER ────────────────────────────────────────────────
+function getWoche(datum, startDatum) {
+  if (!startDatum) return 1;
+  const start = new Date(startDatum + 'T00:00:00');
+  const d = new Date(datum + 'T00:00:00');
+  return Math.min(Math.floor((d - start) / (7 * 86400000)) + 1, 8);
+}
+
+function buildMuster() {
+  const musterEmpty = document.getElementById('muster-empty');
+  const musterContent = document.getElementById('muster-content');
+  const n = appData.hypothesen.length;
+
+  if (n < 3) { musterEmpty.style.display = 'block'; musterContent.style.display = 'none'; return; }
+  musterEmpty.style.display = 'none'; musterContent.style.display = 'block';
+
+  // Startdatum = älteste Hypothese
+  const sorted = [...appData.hypothesen].sort((a,b) => a.datum.localeCompare(b.datum));
+  const startDatum = sorted[0].datum;
+
+  // Personen-Häufigkeit
+  const personenMap = {};
+  appData.hypothesen.forEach(h => {
+    if (h.personen) h.personen.split(',').forEach(p => {
+      const key = p.trim();
+      if (key) personenMap[key] = (personenMap[key] || 0) + 1;
+    });
+  });
+  const topPersonen = Object.entries(personenMap).sort((a,b) => b[1]-a[1]).slice(0,3);
+
+  // Kontext-Häufigkeit — Chips + Freitext
+  const kontextMap = {};
+  appData.hypothesen.forEach(h => {
+    (h.kontext||[]).forEach(k => { kontextMap[k] = (kontextMap[k]||0)+1; });
+    if (h.kontextFreitext && h.kontextFreitext.trim()) {
+      const key = h.kontextFreitext.trim();
+      kontextMap[key] = (kontextMap[key]||0)+1;
+    }
+  });
+  const topKontexte = Object.entries(kontextMap).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+  // Starke Signale
+  const starkCount = appData.hypothesen.filter(h => h.intensitaet >= 4).length;
+  const bestaetigtCount = appData.hypothesen.filter(h => h.status === 'bestaetigt').length;
+
+  // ── EMOTIONSVERLAUF PRO WOCHE ──────────────────────────
+  const wochenData = {};
+  appData.hypothesen.forEach(h => {
+    if (!h.zustand) return;
+    const w = getWoche(h.datum, startDatum);
+    if (!wochenData[w]) wochenData[w] = { ja: 0, nein: 0, total: 0 };
+    wochenData[w].total++;
+    if (h.zustand === 'ja') wochenData[w].ja++;
+    else wochenData[w].nein++;
+  });
+
+  const musterList = document.getElementById('muster-list');
+  musterList.innerHTML = '';
+
+  // Emotionsverlauf Visualisierung
+  const wochenKeys = Object.keys(wochenData).sort((a,b) => a-b);
+  if (wochenKeys.length > 0) {
+    const verlaufDiv = document.createElement('div');
+    verlaufDiv.style.cssText = 'margin-bottom:16px;';
+    verlaufDiv.innerHTML = `
+      <div style="font-size:11px;font-weight:600;color:var(--teal-dark);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">
+        ⚡ Emotionale Handlungsfähigkeit — Verlauf
+      </div>
+      <div style="font-size:10px;color:var(--greige-d);margin-bottom:10px;font-style:italic;">
+        Wie oft war ich handlungsfähig vs. brauchte Abstand — pro Woche
+      </div>
+      ${wochenKeys.map(w => {
+        const d = wochenData[w];
+        const pctJa = d.total > 0 ? Math.round((d.ja / d.total) * 100) : 0;
+        const pctNein = 100 - pctJa;
+        const farbe = pctJa >= 70 ? 'var(--evid-fg)' : pctJa >= 40 ? 'var(--yellow-fg)' : 'var(--red-fg)';
+        const bgFarbe = pctJa >= 70 ? 'var(--evid-bg)' : pctJa >= 40 ? 'var(--yellow-bg)' : 'var(--red-bg)';
+        const label = pctJa >= 70 ? '✅ Stabil' : pctJa >= 40 ? '⚠️ Gemischt' : '🔴 Unter Druck';
+        return `
+          <div style="margin-bottom:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:600;color:var(--teal-dark);">Woche ${w}</span>
+              <span style="font-size:10px;font-weight:600;color:${farbe};background:${bgFarbe};padding:2px 8px;border-radius:10px;">${label} · ${pctJa}% handlungsfähig</span>
+            </div>
+            <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px;">
+              <div style="flex:${d.ja||0.01};background:var(--teal-mid);border-radius:6px 0 0 6px;transition:flex .4s;"></div>
+              <div style="flex:${d.nein||0.01};background:var(--greige-l);border-radius:0 6px 6px 0;transition:flex .4s;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--greige-d);margin-top:3px;">
+              <span>✅ Handlungsfähig: ${d.ja}×</span>
+              <span>⏸ Abstand gebraucht: ${d.nein}×</span>
+            </div>
+          </div>
+        `;
+      }).join('')}
+      <div style="font-size:10px;color:var(--greige-d);font-style:italic;margin-top:6px;line-height:1.6;padding:8px 10px;background:var(--sand);border-radius:8px;">
+        📈 Ziel: Mit der Zeit mehr grüne Balken — das zeigt Verhaltensänderung und wachsende emotionale Stabilität unter Druck.
+      </div>
+    `;
+    musterList.appendChild(verlaufDiv);
+  }
+
+  // Standard Muster
+  const muster = [
+    { icon: '📊', title: 'Gesamtbild', text: `${n} Hypothesen dokumentiert · ${bestaetigtCount} bestätigt · ${starkCount} mit starkem Signal` },
+    ...(topPersonen.length > 0 ? [{ icon: '👤', title: 'Häufigste Personen', text: topPersonen.map(([n,c]) => `${n} (${c}×)`).join(' · ') }] : []),
+    ...(topKontexte.length > 0 ? [{ icon: '🎯', title: 'Häufigste Kontexte', text: topKontexte.map(([k,c]) => `${k} (${c}×)`).join(' · ') }] : []),
+    ...(starkCount > 0 ? [{ icon: '🔴', title: 'Starke Signale', text: `${starkCount} Beobachtung${starkCount > 1 ? 'en' : ''} mit Intensität 4-5 — diese haben höchste Priorität für deine Strategie.` }] : []),
+    // Systemtyp-Auswertung
+    ...(() => {
+      const systemCount = appData.hypothesen.filter(h => h.systemTyp === 'system').length;
+      const personCount = appData.hypothesen.filter(h => h.systemTyp === 'person').length;
+      if (systemCount + personCount === 0) return [];
+      const dominant = systemCount > personCount ? 'Systemmuster dominieren' : 'Individuelle Muster dominieren';
+      return [{ icon: '🏢', title: 'System vs. Person', text: `${dominant} · ${systemCount}× Systemmuster · ${personCount}× individuell — wichtig für deine Strategie` }];
+    })(),
+  ];
+
+  muster.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'muster-item';
+    div.innerHTML = `<div class="muster-icon">${m.icon}</div><div class="muster-text"><strong>${m.title}</strong>${m.text}</div>`;
+    musterList.appendChild(div);
+  });
+}
+
+function saveMuster() {
+  if (!appData.muster) appData.muster = {};
+  appData.muster.system = document.getElementById('m-system').value;
+  appData.muster.strategie = document.getElementById('m-strategie').value;
+  appData.muster.session = document.getElementById('m-session').value;
+  saveData();
+  const btn = event.target;
+  btn.innerHTML = '✓ Gespeichert!'; btn.classList.add('saved');
+  setTimeout(() => { btn.innerHTML = 'Reflexion speichern'; btn.classList.remove('saved'); }, 2000);
+  showToast('Reflexion gespeichert ✓');
+}
+
+function loadMusterReflexion() {
+  if (appData.muster) {
+    if (appData.muster.system) document.getElementById('m-system').value = appData.muster.system;
+    if (appData.muster.strategie) document.getElementById('m-strategie').value = appData.muster.strategie;
+    if (appData.muster.session) document.getElementById('m-session').value = appData.muster.session;
+  }
+}
+
+// ── TABS ─────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['start','neu','uebersicht','muster'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'uebersicht') buildUebersicht();
+  if (name === 'muster') { buildMuster(); loadMusterReflexion(); }
+}
+
+// ── LINK ─────────────────────────────────────────────────
+function createLink() {
+  try {
+    const encoded = btoa(encodeURIComponent(JSON.stringify(appData)));
+    const url = window.location.origin + window.location.pathname + '?d=' + encoded;
+    document.getElementById('link-output').value = url;
+    document.getElementById('link-dialog').classList.add('vis');
+    if (navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
+  } catch(e) { showToast('Fehler beim Erstellen des Links'); }
+}
+function copyLink() { navigator.clipboard.writeText(document.getElementById('link-output').value).then(() => showToast('Link kopiert! ✓')); }
+function closeLink() { document.getElementById('link-dialog').classList.remove('vis'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── START ─────────────────────────────────────────────────
+checkLogin() ? init() : null;
+</script>
+</body>
+</html>
